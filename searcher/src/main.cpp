@@ -2,6 +2,10 @@
 
 #include <tokenizer.hpp>
 #include <retriever.hpp>
+#include <indexer.hpp>
+
+#include <CLI/CLI.hpp>
+#include <glog/logging.h>
 
 /*
 
@@ -18,14 +22,55 @@ Tasks on query handle:
 
 */
 
+static std::vector<std::string> fetchPlainIndex(std::filesystem::path path) {
+    std::ifstream fin(path);
+    std::vector<std::string> plainIndex;
+    
+    std::string doc;
+    while (std::getline(fin, doc)) {
+        plainIndex.push_back(doc);
+    }
+
+    return plainIndex;
+}
 
 
-int main() {
-    auto tokenizer = std::make_unique<Tokenizer>();
+int main(int argc, char* argv[]) {
+    google::InitGoogleLogging(argv[0]);
+    // FLAGS_logtostderr = 1;
 
-    std::string query{"Hello, world! How're you doing today?"};
-    auto tokens = tokenizer->tokenize(query);
+    CLI::App app{"Simple term-based search engine"};
+    argv = app.ensure_utf8(argv);
 
-    std::cout << "Hello, world!" << std::endl;
+    std::string indexPath;
+    std::string query;
+    size_t maxDocs = 5;
+    app.add_option("-f,--file", indexPath, "path to file with plain index");
+    app.add_option("-q,--query", query, "search query");
+    app.add_option("-M,--max-docs", maxDocs, "max docs restriction");
+
+    CLI11_PARSE(app, argc, argv);
+
+    if (!std::filesystem::exists(indexPath)) {
+        LOG(ERROR) << std::format("{}: no such file", indexPath);
+        return 1;
+    }
+
+    if (query.empty()) {
+        LOG(ERROR) << "query is not specified!";
+        return 1;
+    }
+
+    auto plainIndex = fetchPlainIndex(indexPath);
+    auto indexer = std::make_unique<Indexer>();
+
+    auto index = indexer->buildIndex(plainIndex);
+    auto retriever = std::make_unique<Retriever>(index);
+
+    auto serp = retriever->retrieve(query, maxDocs);
+    for (auto [score, id] : serp) {
+        std::print("Document {}\n", index->getDoc(id));
+    }
+
     return 0;
 }

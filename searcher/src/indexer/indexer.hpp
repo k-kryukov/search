@@ -18,7 +18,7 @@ class Indexer {
 public:
     Indexer() {}
 
-    std::unique_ptr<Index> buildIndex(std::vector<std::string> plainIndex) {
+    std::shared_ptr<Index> buildIndex(std::vector<std::string> plainIndex) {
         auto docsCnt = plainIndex.size();
         size_t terms = 0;
         std::unordered_map<std::string, size_t> df;
@@ -55,7 +55,7 @@ public:
             termData.idf_ = inverseDocumentFrequency(docFreq, docsCnt);
         }
 
-        auto index = std::make_unique<Index>(docsCnt, termsData.size(), std::move(plainIndex));
+        auto index = std::make_shared<Index>(docsCnt, termsData.size(), std::move(plainIndex));
         for (auto [term, termData] : termsData) {
             index->addTerm(term, termData);
         }

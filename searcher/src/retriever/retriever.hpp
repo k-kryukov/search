@@ -1,9 +1,16 @@
 #pragma once
 
+#ifndef GLOG_USE_GLOG_EXPORT
+    #define GLOG_USE_GLOG_EXPORT
+#endif
+
 #include <filesystem>
 #include <unordered_set>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
+
+#include <glog/logging.h>
 
 #include "index.hpp"
 #include "document.hpp"
@@ -12,10 +19,10 @@
 
 class Retriever {
     Tokenizer tkzr_;
-    std::unique_ptr<Index> index_;
+    std::shared_ptr<Index> index_;
 
 public:
-    Retriever(std::unique_ptr<Index> index) {
+    Retriever(std::shared_ptr<Index> index) {
         index_ = std::move(index);
     }
 
@@ -25,12 +32,12 @@ public:
         candidatesIds.reserve(docCnt);
 
         for (auto term : terms) {
-            std::cout << "Processing term " << term << std::endl;
+            DLOG(INFO) << "Processing term " << term << std::endl;
             index_->getTermData(term).and_then([&candidatesIds] (TermData termData) -> std::optional<TermData> {
                 auto idf = termData.idf_;
 
                 for (auto posting : termData.postingList_) {
-                    std::cout << "adding up " << posting.tf_ * idf << std::endl;
+                    DLOG(INFO) << "adding up " << posting.tf_ * idf << std::endl;
                     candidatesIds[posting.docId_] += posting.tf_ * idf;
                 }
 
@@ -45,6 +52,10 @@ public:
                 std::make_pair(score, id)
             );
         }
+
+        std::sort(res.begin(), res.end(), [] (auto x, auto y) { return x > y; });
+        if (res.size() > docCnt)
+            res.resize(docCnt);
 
         return res;
     }
