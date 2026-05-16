@@ -10,6 +10,9 @@ struct Posting {
     uint64_t docId_;
     uint64_t tf_;
 
+    bool operator==(Posting const& other) const {
+        return docId_ == other.docId_ && tf_ == other.tf_;
+    }
     // tbd: positions
 };
 
@@ -80,13 +83,17 @@ public:
         );
     }
 
-    std::optional<TermData> getTermData(std::string const& term) {
-        if (termToDoc_.contains(term))
-            return termToDoc_[term];
+    std::optional<TermData> getTermData(std::string const& term) const {
+        if (auto it = termToDoc_.find(term); it != termToDoc_.end())
+            return it->second;
         return std::nullopt;
     }
 
-    std::string getDoc(size_t idx) {
+    std::string getDoc(size_t idx) const {
         return docs.at(idx);
+    }
+
+    auto dumpTermsData() const { 
+        return termToDoc_;
     }
 };
