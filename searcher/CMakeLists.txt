@@ -1,5 +1,5 @@
 
 
 
-
-add_executable(searcher src/main.cpp)
+add_subdirectory(src)
+add_subdirectory(tests)
