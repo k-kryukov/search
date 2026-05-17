@@ -11,7 +11,7 @@
 class Indexer {
     Tokenizer tkzr;
 
-    double inverseDocumentFrequency(size_t docFreq, size_t docCnt) {
+    static double inverseDocumentFrequency(size_t docFreq, size_t docCnt) {
         return log(1 + docCnt / docFreq);
     }
 
@@ -23,13 +23,8 @@ public:
         size_t terms = 0;
         std::unordered_map<std::string, size_t> df;
         std::unordered_map<std::string, TermData> termsData;
-        for (auto [term, docFreq] : df) {
-            termsData[term] = TermData{
-                docFreq, inverseDocumentFrequency(docFreq, docsCnt), {}
-            };
-        }
-
         size_t docId = 0;
+
         for (auto doc : plainIndex) {
             auto tokens = tkzr.tokenize(doc);
             std::unordered_map<std::string, size_t> tf;
@@ -45,7 +40,7 @@ public:
                     Posting{docId, freq}
                 );
             }
-            
+
             docId++;
         }
 

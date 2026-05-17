@@ -25,7 +25,7 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Values(
         TestCase{"hello", std::vector<std::string>{"hello"}},
         TestCase{"hello, world!", std::vector<std::string>{"hello", "world"}},
-        TestCase{"hello world", std::vector<std::string>{"hello", "world"}},
+        TestCase{"hello World", std::vector<std::string>{"hello", "world"}},
         TestCase{"hello world;have a good day!!!", std::vector<std::string>{"hello", "world", "have", "a", "good", "day"}}
     )
 );

@@ -45,9 +45,11 @@ int main(int argc, char* argv[]) {
     std::string indexPath;
     std::string query;
     size_t maxDocs = 5;
+    bool dumpScore = false;
     app.add_option("-f,--file", indexPath, "path to file with plain index");
     app.add_option("-q,--query", query, "search query");
     app.add_option("-M,--max-docs", maxDocs, "max docs restriction");
+    app.add_flag("--show-score", dumpScore, "show document score");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -69,7 +71,17 @@ int main(int argc, char* argv[]) {
 
     auto serp = retriever->retrieve(query, maxDocs);
     for (auto [score, id] : serp) {
-        std::print("Document {}\n", index->getDoc(id));
+        std::cout << std::format("Document {}", index->getDoc(id)) + (dumpScore ? std::format(" with score {}", score) : "") << std::endl;
+    }
+
+    auto termData = index->getTermData("старый");
+    if (termData) {
+        std::cout << "df for старый is " << termData->df_ << std::endl;
+    }
+
+    termData = index->getTermData("Старый");
+    if (termData) {
+        std::cout << "df for Старый is " <<  termData->df_ << std::endl;
     }
 
     return 0;
